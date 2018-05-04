@@ -3,7 +3,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import javax.swing.ImageIcon;
-
+@SuppressWarnings("unused")
 public class PieceListener implements MouseListener {
 	private HashMap<Integer, ArrayList<Integer>> possibleMoves;
 	private Tile[] tile = new Tile[32];
@@ -19,7 +19,11 @@ public class PieceListener implements MouseListener {
 	private static final int TRANSPARENT_GREENICON = 3;
 	private static int whitePiecesCount = 12;
 	private static int greenPiecesCount = 12;
-	private static boolean isChangeTurns = false;
+	private static boolean isChangeTurns = true;
+	private boolean canDoubleEat = false;
+	private int eater = -1;
+	private boolean flagTurn = false;
+	
 	public PieceListener() {
 		this.tile = Board.tile;
 		
@@ -217,12 +221,12 @@ public class PieceListener implements MouseListener {
 		ArrayList<Integer> moveList = possibleMoves.get(i);
 		if(!tile[i].getTilePiece().getIsKing())
 			moveList = ordPiecesPossibleMoves(tile[i].getTilePiece().getCol(),moveList,i);
-		System.out.println(i+" i: "+moveList);
+		//System.out.println(i+" i: "+moveList);
 		
 		for(int j = 0;j<moveList.size();j++) {
 			if(tile[moveList.get(j)].getTilePiece().getCol() == col && tile[moveList.get(j)].isOccupied()) {
 					ArrayList<Integer> moveList2 = possibleMoves.get(moveList.get(j));
-					System.out.println(moveList.get(j)+" before: "+moveList2);
+					//System.out.println(moveList.get(j)+" before: "+moveList2);
 					if(!tile[i].getTilePiece().getIsKing()) {
 						moveList2 = ordPiecesPossibleMoves(tile[moveList.get(j)].getTilePiece().getCol(),moveList2,moveList.get(j));
 					}else if(tile[i].getTilePiece().getIsKing() && (evilTileId.contains(i)&& turn ==GREEN)) {
@@ -235,22 +239,22 @@ public class PieceListener implements MouseListener {
 						}
 					}
 					
-					System.out.println(moveList.get(j)+" j: "+moveList2);
+					//System.out.println(moveList.get(j)+" j: "+moveList2);
 					
 					if(!(moveList2.size() == 1) ) {
-						System.out.println("yo");
+						//System.out.println("yo");
 						if(!evilTileId.contains(moveList.get(j))) {
-							System.out.println("yo1");
+							//System.out.println("yo1");
 							if(!tile[moveList2.get(j)].isOccupied() && moveList.size() > 1) {
-								System.out.println("yo2");
+								//System.out.println("yo2");
 								eatList.add(new Eat(i, moveList.get(j), moveList2.get(j)));
 							}else if(moveList.size() == 1)  {
-								System.out.println("yo3");
+							//	System.out.println("yo3");
 								if(leftTiles.contains((Integer)i) && !tile[moveList2.get(j+1)].isOccupied()) {
-									System.out.println("yo4");
+									//System.out.println("yo4");
 									eatList.add(new Eat(i, moveList.get(j), moveList2.get(j+1)));
 								}else if(rightTiles.contains((Integer)i) && !tile[moveList2.get(j)].isOccupied()) {
-									System.out.println("yo5");
+									//System.out.println("yo5");
 									eatList.add(new Eat(i, moveList.get(j), moveList2.get(j)));
 								}
 								
@@ -297,40 +301,41 @@ public class PieceListener implements MouseListener {
 	}
 	
 	private	boolean  compulsoryEat(boolean secondWave, int anotherTile) {
+		boolean isNothingToEat = true;
 		
-		ArrayList<ArrayList<Eat>> eatArrList = checkIfPieceCanEat(secondWave, anotherTile);
-		ArrayList<Integer> adj = getAllPotentialJumpTo(eatArrList);
-		
-		
-		   for(int a = 0;a<eatArrList.size();a++) {
-		        ArrayList<Eat> eatList = eatArrList.get(a);
-		        for(int b = 0;b<eatList.size();b++) {
-		        	Eat eat = eatList.get(b);
-		        	System.out.println(eat.getEater() +"can jump to "+eat.getJumpTo());
-		    		int col = tile[eat.getEater()].getTilePiece().getCol() == GREENICON ? TRANSPARENT_GREENICON : TRANSPARENT_WHITEICON;
-		    		ImageIcon icon = tile[eat.getEater()].getTilePiece().getIcon(col);
-		    		
-		    			
-		    			Integer elem = eat.getJumpTo();
-		    			
-		    			tile[elem].setPreTile(eat.getEater());
-		    			tile[elem].getTilePiece().setCol(col);
-		    			tile[elem].getTilePiece().setPieceIcon(icon);
-		    			tile[elem].getTilePiece().setPieceVisibility(true);
-		    			tile[elem].getTilePiece().setVisible(true);
-		    			tile[elem].getTilePiece().setEnabled(true);
-		    			tile[elem].getTilePiece().addMouseListener(this);
-		    			tile[elem].getTilePiece().setTileEaten(eat.getFood());
-		    			
-		    			tile[elem].setAdjTiles(adj);
-		    			
-		        }	
-		    }
-		  
-		   if(!adj.isEmpty())
-			   disableMouseListener(adj);
-		
-		   return false;
+		 
+			    ArrayList<ArrayList<Eat>> eatArrList = checkIfPieceCanEat(secondWave, anotherTile);
+				ArrayList<Integer> adj = getAllPotentialJumpTo(eatArrList);
+				
+			   for(int a = 0;a<eatArrList.size();a++) {
+			        ArrayList<Eat> eatList = eatArrList.get(a);
+			        for(int b = 0;b<eatList.size();b++) {
+			        	Eat eat = eatList.get(b);
+			        	System.out.println(eat.getEater() +"can jump to "+eat.getJumpTo());
+			    		int col = tile[eat.getEater()].getTilePiece().getCol() == GREENICON ? TRANSPARENT_GREENICON : TRANSPARENT_WHITEICON;
+			    		ImageIcon icon = tile[eat.getEater()].getTilePiece().getIcon(col);
+			    		
+			    			
+			    			Integer elem = eat.getJumpTo();
+			    			
+			    			tile[elem].setPreTile(eat.getEater());
+			    			tile[elem].getTilePiece().setCol(col);
+			    			tile[elem].getTilePiece().setPieceIcon(icon);
+			    			tile[elem].getTilePiece().setPieceVisibility(true);
+			    			tile[elem].getTilePiece().setVisible(true);
+			    			tile[elem].getTilePiece().setEnabled(true);
+			    			tile[elem].getTilePiece().addMouseListener(this);
+			    			tile[elem].getTilePiece().setTileEaten(eat.getFood());
+			    			
+			    			tile[elem].setAdjTiles(adj);
+			    			isNothingToEat = false;
+			        }	
+			    }
+			  
+			   if(!adj.isEmpty())
+				   disableMouseListener(adj);
+			
+		   return isNothingToEat;
 		   
 		    
 	}
@@ -374,6 +379,7 @@ public class PieceListener implements MouseListener {
 					
 					if(tile[i].getTilePiece().getTileEaten() != -1) {
 						removePredecessorTile(tile[i].getTilePiece().getTileEaten());
+						eater = i;
 						if(turn == GREEN) {
 							whitePiecesCount--;
 						}else {
@@ -390,13 +396,26 @@ public class PieceListener implements MouseListener {
 					
 					boolean isKing = removePredecessorTile(pre);
 					turnToRealPiece(i, isKing);
-					changeTurns();
-					enableMouseListener();
 					tile[i].setPreTile(-1);
 					pre = tile[i].getPreTile();
+				// delete this part right here to preserve last version	
+					if(isChangeTurns) {
+						changeTurns();	
+						enableMouseListener();
+						flagTurn =false;
+					}else {flagTurn = true;}
+				// end
+					isChangeTurns = compulsoryEat(canDoubleEat, eater);
 					
-					isChangeTurns = compulsoryEat(false, -1);
 					
+					System.out.println("changeturns = "+isChangeTurns);
+					// delete this part right here to preserve last version	
+					if(isChangeTurns && flagTurn) {
+						changeTurns();	
+						enableMouseListener();
+					}
+					// end
+	
 				}
 				
 				

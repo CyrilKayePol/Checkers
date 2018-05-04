@@ -10,6 +10,7 @@ public class Board extends JPanel{
 	private static final int GREENICON = 1;
 	private static final int TRANSPARENT_WHITEICON = 2;
 	private static final int TRANSPARENT_GREENICON = 3;
+	public static boolean start = true;
 	
 	public Board() {
 		setLayout(null);
