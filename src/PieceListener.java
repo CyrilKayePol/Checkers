@@ -413,6 +413,7 @@ public class PieceListener implements MouseListener {
 					if(isChangeTurns && flagTurn) {
 						changeTurns();	
 						enableMouseListener();
+						isChangeTurns = compulsoryEat(canDoubleEat, eater);
 					}
 					// end
 	
